@@ -3,10 +3,7 @@ package upc.edu.Finanzas_TF.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import upc.edu.Finanzas_TF.model.Producto;
 import upc.edu.Finanzas_TF.repository.ProductoRepository;
 import upc.edu.Finanzas_TF.service.ProductoService;
@@ -36,12 +33,17 @@ public class ProductoController {
         return new ResponseEntity<List<Producto>>(productoService.getProductoByNombre(nombre), HttpStatus.OK);
     }
 
-    @PostMapping("/productos")
-    public ResponseEntity<Producto> addProducto(Producto producto) {
-        return new ResponseEntity<Producto>(productoService.addProducto(producto), HttpStatus.CREATED);
+    @PostMapping
+    public ResponseEntity<Producto> addProducto(@RequestBody Producto producto) {
+        if (producto.getNombre() == null || producto.getNombre().isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Return a 400 Bad Request if 'nombre' is null or empty
+        }
+        if (producto.getCosto() <= 0) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Return a 400 Bad Request if 'costo' is less than or equal to 0
+        }
+
+        Producto newProducto = productoService.addProducto(producto);
+        return new ResponseEntity<>(newProducto, HttpStatus.CREATED);
+
     }
-
-
-
-
 }

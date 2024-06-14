@@ -23,6 +23,9 @@ public class Persona {
     @Column(name="nombre", length =50, nullable=false)
     private String nombre;
 
+    @Column(name="apellido", length =50, nullable=false)
+    private String apellido;
+
     @Column(name="direccion", length =200, nullable=false)
     private String direccion;
 
@@ -38,6 +41,6 @@ public class Persona {
     @OneToOne(mappedBy = "persona", cascade = CascadeType.ALL,fetch = FetchType.EAGER, orphanRemoval = true)
     private Credito credito;
 
-    @OneToMany(mappedBy = "persona", cascade = CascadeType.ALL,fetch = FetchType.EAGER, orphanRemoval = true)
-    private List<Compra> compras = new ArrayList<>();
+    /*@OneToMany(mappedBy = "persona", cascade = CascadeType.ALL,fetch = FetchType.EAGER, orphanRemoval = true)
+    private List<Compra> compras = new ArrayList<>();*/
 }

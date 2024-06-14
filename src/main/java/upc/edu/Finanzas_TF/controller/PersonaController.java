@@ -40,7 +40,7 @@ public class PersonaController {
 
     }
 
-    @PostMapping("/personas")
+    @PostMapping
     public ResponseEntity<Persona> createPersona(@RequestBody Persona persona) {
         return new ResponseEntity<Persona>(personaService.createPersona(persona), HttpStatus.CREATED);
     }

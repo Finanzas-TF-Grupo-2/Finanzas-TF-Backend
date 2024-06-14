@@ -5,10 +5,13 @@ import org.springframework.stereotype.Service;
 import upc.edu.Finanzas_TF.model.Compra;
 import upc.edu.Finanzas_TF.model.Credito;
 import upc.edu.Finanzas_TF.model.Persona;
+import upc.edu.Finanzas_TF.model.Producto;
 import upc.edu.Finanzas_TF.repository.CompraRepository;
 import upc.edu.Finanzas_TF.repository.PersonaRepository;
 import upc.edu.Finanzas_TF.service.CompraService;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -32,8 +35,12 @@ public class CompraServiceImpl implements CompraService {
         Persona existePersona = personaRepository.findById(persona.getId())
                 .orElseThrow(() -> new RuntimeException("Persona no encontrada"));
         compra.setPersona(existePersona);
+        Producto producto = compra.getProducto();
+        compra.setProducto(producto);
         double montoFinal = calcularMontoFinal(compra);
         compra.setMontoFinal(montoFinal);
+        double personaSaldoFinal = persona.getCredito().getSaldo() - montoFinal;
+        persona.getCredito().setSaldo(personaSaldoFinal);
         return compraRepository.save(compra);
     }
 
@@ -46,6 +53,10 @@ public class CompraServiceImpl implements CompraService {
     public Optional<Compra> getCompraById(Long id) {
         return compraRepository.findById(id);
     }
+
+
+
+
 
     @Override
     public List<Compra> getCompraByFechaCompraBetween(LocalDate  startDate, LocalDate  endDate) {
@@ -87,11 +98,11 @@ public class CompraServiceImpl implements CompraService {
             montoFinal = calcularPagoMensualEnCuotas(montoProducto, credito.getPorcentajeTasa(), compra.getNumeroCuotas());
         } else {
             int frecuenciaPagoDias = Frecuencia.fromString(credito.getFrecuenciaPago()).getDias();
-            int capitalizacionDias = Frecuencia.fromString(credito.getCapitalizacion()).getDias();
+
             int diaPago = credito.getDiaPago();
             if ("nominal".equalsIgnoreCase(credito.getTipoTasa())) {
                 // Calcular monto final con tasa nominal
-
+                int capitalizacionDias = Frecuencia.fromString(credito.getCapitalizacion()).getDias();
                 double m = (double) frecuenciaPagoDias / capitalizacionDias;
                 double n = (double) diaPago / capitalizacionDias;
                 montoFinal = montoProducto * Math.pow((1 + credito.getPorcentajeTasa() / m), n);
@@ -105,7 +116,8 @@ public class CompraServiceImpl implements CompraService {
             }
         }
 
-        return montoFinal;
+        BigDecimal montoFinalBD = new BigDecimal(montoFinal).setScale(2, RoundingMode.HALF_UP);
+        return montoFinalBD.doubleValue();
     }
 
     private double calcularPagoMensualEnCuotas(double montoProducto, double tasaEfectiva, int numeroCuotas) {

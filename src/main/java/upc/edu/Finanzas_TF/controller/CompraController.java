@@ -10,6 +10,7 @@ import upc.edu.Finanzas_TF.service.CompraService;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/compra")
@@ -38,9 +39,15 @@ public class CompraController {
         return new ResponseEntity<List<Compra>>(compraService.getCompraByFechaCompraBetween(startDate, endDate), HttpStatus.OK);
     }
 
+    @PostMapping
+    public ResponseEntity<Compra> addCompra(@RequestBody Compra compra) {
+        return new ResponseEntity<Compra>(compraService.addCompra(compra), HttpStatus.CREATED);
+    }
+
     @PutMapping("/{id}/pagar")
-    public ResponseEntity<?> pagarCompra(@PathVariable Long id, @RequestParam double cantidadPagada) {
-        compraService.pagarCompra(id, cantidadPagada);
+    public ResponseEntity<?> pagarCompra(@PathVariable Long id, @RequestBody Map<String, Double> request) {
+        Double montoFinal = request.get("montoFinal");
+        compraService.pagarCompra(id, montoFinal);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

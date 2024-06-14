@@ -20,8 +20,9 @@ public class PersonaServiceImpl implements PersonaService {
     public Persona createPersona(Persona persona) {
         Credito credito = persona.getCredito();
         if (credito != null) {
-            persona.setCredito(credito);
             credito.setPorcentajeTasa(credito.getPorcentajeTasa() / 100);
+            credito.setPersona(persona);
+
         }
 
         return personaRepository.save(persona);

@@ -11,4 +11,12 @@ public interface CompraRepository extends JpaRepository<Compra, Long> {
     List<Compra>findByPersonaId(Long persona);
 
     List<Compra> findByFechaCompraBetween(LocalDate startDate, LocalDate endDate);
+
+
+
+
+
+
+
+
 }

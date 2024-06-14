@@ -20,12 +20,12 @@ public class Producto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="nombre", length =50, nullable=false)
+    @Column(name = "nombre", length = 50, nullable = false)
     private String nombre;
 
     @Column(name="costo", nullable=false)
     private double costo;
 
-    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL,fetch = FetchType.EAGER, orphanRemoval = true)
-    private List<Compra> compras = new ArrayList<>();
+    /*@OneToMany(mappedBy = "producto", cascade = CascadeType.ALL,fetch = FetchType.EAGER, orphanRemoval = true)
+    private List<Compra> compras = new ArrayList<>();*/
 }
