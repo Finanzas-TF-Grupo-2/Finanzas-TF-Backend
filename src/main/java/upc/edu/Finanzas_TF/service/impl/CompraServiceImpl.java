@@ -39,8 +39,8 @@ public class CompraServiceImpl implements CompraService {
         compra.setProducto(producto);
         double montoFinal = calcularMontoFinal(compra);
         compra.setMontoFinal(montoFinal);
-        double personaSaldoFinal = persona.getCredito().getSaldo() - montoFinal;
-        persona.getCredito().setSaldo(personaSaldoFinal);
+        double personaSaldoFinal = existePersona.getCredito().getSaldo() - montoFinal;
+        existePersona.getCredito().setSaldo(personaSaldoFinal);
         return compraRepository.save(compra);
     }
 
@@ -73,15 +73,13 @@ public class CompraServiceImpl implements CompraService {
             throw new RuntimeException("La cantidad pagada no puede ser mayor que el monto final de la compra");
         }
 
-        // Actualiza el monto final de la compra restando la cantidad pagada
-        double nuevoMontoFinal = compra.getMontoFinal() - cantidadPagada;
-        compra.setMontoFinal(nuevoMontoFinal);
 
         // Si la compra es en cuotas, decrementa el número de cuotas restantes
         if (compra.isPagoEnCuotas()) {
             int cuotasRestantes = compra.getNumeroCuotas() - 1;
             compra.setNumeroCuotas(cuotasRestantes);
         }
+        compra.setPaid(true);
 
         // Guarda la compra actualizada en la base de datos y devuélvela
         return compraRepository.save(compra);
@@ -121,8 +119,7 @@ public class CompraServiceImpl implements CompraService {
     }
 
     private double calcularPagoMensualEnCuotas(double montoProducto, double tasaEfectiva, int numeroCuotas) {
-        double pagoMensual = montoProducto * ((tasaEfectiva * Math.pow(1 + tasaEfectiva, numeroCuotas)) / (Math.pow(1 + tasaEfectiva, numeroCuotas) - 1));
-        return pagoMensual;
+        return montoProducto * ((tasaEfectiva * Math.pow(1 + tasaEfectiva, numeroCuotas)) / (Math.pow(1 + tasaEfectiva, numeroCuotas) - 1));
     }
 
 

@@ -35,6 +35,12 @@ public class Compra {
     @Column(name = "fecha_compra", nullable = false)
     private LocalDate fechaCompra;
 
+    @Column(name = "fecha_pago")
+    private LocalDate fechaPago;
+
+    @Column(name = "is_paid", nullable = false)
+    private boolean paid = false;
+
     @Column(name = "monto_final", nullable = false)
     private double montoFinal;
 }
