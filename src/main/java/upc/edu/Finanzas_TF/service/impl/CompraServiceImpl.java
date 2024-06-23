@@ -111,7 +111,8 @@ public class CompraServiceImpl implements CompraService {
         if (compra.isPagoEnCuotas()) {
             // Si la compra se realiza en cuotas, realizar los cálculos correspondientes
             double montoCuotaFinal = calcularPagoMensualEnCuotas(montoProducto, credito.getPorcentajeTasa(), compra.getNumeroCuotas());
-            compra.setMontoCuotaFinal(montoCuotaFinal);
+            BigDecimal montoCuotaFinalBD = new BigDecimal(montoCuotaFinal).setScale(2, RoundingMode.HALF_UP);
+            compra.setMontoCuotaFinal(montoCuotaFinalBD.doubleValue());
             montoFinal = montoCuotaFinal * compra.getNumeroCuotas();
 
 
