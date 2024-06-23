@@ -104,15 +104,17 @@ public class CompraServiceImpl implements CompraService {
         Credito credito = persona.getCredito();
         double montoFinal;
 
+        LocalDate fechaCompra = compra.getFechaCompra();
+        LocalDate fechaPagoInicial = fechaCompra.plusMonths(1).withDayOfMonth(credito.getDiaPago());
+        compra.setFechaPago(fechaPagoInicial);
+
         if (compra.isPagoEnCuotas()) {
             // Si la compra se realiza en cuotas, realizar los cálculos correspondientes
             double montoCuotaFinal = calcularPagoMensualEnCuotas(montoProducto, credito.getPorcentajeTasa(), compra.getNumeroCuotas());
             compra.setMontoCuotaFinal(montoCuotaFinal);
             montoFinal = montoCuotaFinal * compra.getNumeroCuotas();
 
-            LocalDate fechaCompra = compra.getFechaCompra();
-            LocalDate fechaPagoInicial = fechaCompra.plusMonths(1).withDayOfMonth(credito.getDiaPago());
-            compra.setFechaPago(fechaPagoInicial);
+
 
         } else {
             int frecuenciaPagoDias = Frecuencia.fromString(credito.getFrecuenciaPago()).getDias();

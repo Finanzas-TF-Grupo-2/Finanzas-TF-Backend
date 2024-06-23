@@ -32,7 +32,7 @@ public class Compra {
     @Column(name = "numero_cuotas")
     private int numeroCuotas;
 
-    @Column(name = "monto_cuota_final")
+    @Column(name = "monto_cuota_final",  nullable = false)
     private double montoCuotaFinal;
 
     @Column(name = "fecha_compra", nullable = false)
