@@ -32,8 +32,8 @@ public class Compra {
     @Column(name = "numero_cuotas")
     private int numeroCuotas;
 
-    @Column(name = "monto_cuota_final",  nullable = false)
-    private double montoCuotaFinal;
+    @Column(name = "monto_cuota_final")
+    private double montoCuotaFinal = 0.0;
 
     @Column(name = "fecha_compra", nullable = false)
     private LocalDate fechaCompra;
