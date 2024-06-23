@@ -50,4 +50,10 @@ public class CompraController {
         compraService.pagarCompra(id, montoFinal);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCompra(@PathVariable Long id) {
+        compraService.deleteCompra(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

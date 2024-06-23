@@ -19,4 +19,6 @@ public interface CompraService {
     List<Compra> getCompraByFechaCompraBetween(LocalDate startDate, LocalDate endDate);
 
     Compra pagarCompra(Long idCompra, double cantidadPagada);
+
+    Compra deleteCompra(Long id);
 }

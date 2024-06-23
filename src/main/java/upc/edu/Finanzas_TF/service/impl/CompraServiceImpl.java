@@ -76,13 +76,26 @@ public class CompraServiceImpl implements CompraService {
 
         // Si la compra es en cuotas, decrementa el número de cuotas restantes
         if (compra.isPagoEnCuotas()) {
-            int cuotasRestantes = compra.getNumeroCuotas() - 1;
-            compra.setNumeroCuotas(cuotasRestantes);
+
+            compra.setFechaPago(compra.getFechaCompra().plusMonths(1));
+            compra.setNumeroCuotas(compra.getNumeroCuotas()-1);
+
         }
-        compra.setPaid(true);
+        compra.setMontoFinal(compra.getMontoFinal() - cantidadPagada);
+
+        compra.setPaid(compra.getMontoFinal() == 0);
+
 
         // Guarda la compra actualizada en la base de datos y devuélvela
         return compraRepository.save(compra);
+    }
+
+    @Override
+    public Compra deleteCompra(Long id) {
+        Compra compra = compraRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Compra no encontrada"));
+        compraRepository.delete(compra);
+        return compra;
     }
 
     private double calcularMontoFinal(Compra compra) {
@@ -93,7 +106,14 @@ public class CompraServiceImpl implements CompraService {
 
         if (compra.isPagoEnCuotas()) {
             // Si la compra se realiza en cuotas, realizar los cálculos correspondientes
-            montoFinal = calcularPagoMensualEnCuotas(montoProducto, credito.getPorcentajeTasa(), compra.getNumeroCuotas());
+            double montoCuotaFinal = calcularPagoMensualEnCuotas(montoProducto, credito.getPorcentajeTasa(), compra.getNumeroCuotas());
+            compra.setMontoCuotaFinal(montoCuotaFinal);
+            montoFinal = montoCuotaFinal * compra.getNumeroCuotas();
+
+            LocalDate fechaCompra = compra.getFechaCompra();
+            LocalDate fechaPagoInicial = fechaCompra.plusMonths(1).withDayOfMonth(credito.getDiaPago());
+            compra.setFechaPago(fechaPagoInicial);
+
         } else {
             int frecuenciaPagoDias = Frecuencia.fromString(credito.getFrecuenciaPago()).getDias();
 
