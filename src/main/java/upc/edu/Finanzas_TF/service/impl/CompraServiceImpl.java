@@ -77,12 +77,14 @@ public class CompraServiceImpl implements CompraService {
         // Si la compra es en cuotas, decrementa el número de cuotas restantes
         if (compra.isPagoEnCuotas()) {
 
-            compra.setFechaPago(compra.getFechaCompra().plusMonths(1));
+            compra.setFechaPago(compra.getFechaPago().plusMonths(1));
             compra.setNumeroCuotas(compra.getNumeroCuotas()-1);
+            compra.setMontoFinal(compra.getMontoFinal() - compra.getMontoCuotaFinal());
 
+        }else {
+            // Si la compra no es en cuotas, decrementa el monto final de la compra
+            compra.setMontoFinal(compra.getMontoFinal() - cantidadPagada);
         }
-        compra.setMontoFinal(compra.getMontoFinal() - cantidadPagada);
-
         compra.setPaid(compra.getMontoFinal() == 0);
 
 
