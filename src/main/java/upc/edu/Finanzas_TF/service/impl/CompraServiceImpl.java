@@ -73,13 +73,13 @@ public class CompraServiceImpl implements CompraService {
         BigDecimal cantidadPagadaBD = BigDecimal.valueOf(cantidadPagada);
 
 
-        // Verifica que la cantidad pagada no sea mayor que el monto final de la compra
+
         if (cantidadPagadaBD.compareTo(montoFinal) > 0) {
             throw new RuntimeException("La cantidad pagada no puede ser mayor que el monto final de la compra");
         }
 
 
-        // Si la compra es en cuotas, decrementa el número de cuotas restantes
+
         if (compra.isPagoEnCuotas()) {
 
             compra.setFechaPago(compra.getFechaPago().plusMonths(1));
@@ -87,7 +87,7 @@ public class CompraServiceImpl implements CompraService {
             montoFinal = montoFinal.subtract(montoCuotaFinal);
 
         }else {
-            // Si la compra no es en cuotas, decrementa el monto final de la compra
+
             montoFinal = montoFinal.subtract(cantidadPagadaBD);
         }
 
@@ -96,7 +96,7 @@ public class CompraServiceImpl implements CompraService {
         compra.setPaid(montoFinal.compareTo(BigDecimal.ZERO) == 0);
 
 
-        // Guarda la compra actualizada en la base de datos y devuélvela
+
         return compraRepository.save(compra);
     }
 
