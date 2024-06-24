@@ -11,4 +11,6 @@ public interface ProductoService {
     Producto addProducto(Producto producto);
 
     List<Producto> getProductoByNombre(String nombre);
+
+    Producto deleteProducto (Long id);
 }

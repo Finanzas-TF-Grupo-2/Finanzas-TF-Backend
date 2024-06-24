@@ -28,4 +28,13 @@ public class ProductoServiceImpl implements ProductoService {
     public List<Producto> getProductoByNombre(String nombre) {
         return productoRepository.findByNombreContaining(nombre);
     }
+
+    @Override
+    public Producto deleteProducto(Long id) {
+        Producto producto = productoRepository.findById(id)
+                        .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+        productoRepository.delete(producto);
+        return producto;
+
+    }
 }
