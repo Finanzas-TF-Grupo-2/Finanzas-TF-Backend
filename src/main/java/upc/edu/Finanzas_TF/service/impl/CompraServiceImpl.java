@@ -68,8 +68,13 @@ public class CompraServiceImpl implements CompraService {
         Compra compra = compraRepository.findById(idCompra)
                 .orElseThrow(() -> new RuntimeException("Compra no encontrada"));
 
+        BigDecimal montoFinal = BigDecimal.valueOf(compra.getMontoFinal());
+        BigDecimal montoCuotaFinal = BigDecimal.valueOf(compra.getMontoCuotaFinal());
+        BigDecimal cantidadPagadaBD = BigDecimal.valueOf(cantidadPagada);
+
+
         // Verifica que la cantidad pagada no sea mayor que el monto final de la compra
-        if (cantidadPagada > compra.getMontoFinal()) {
+        if (cantidadPagadaBD.compareTo(montoFinal) > 0) {
             throw new RuntimeException("La cantidad pagada no puede ser mayor que el monto final de la compra");
         }
 
@@ -79,13 +84,16 @@ public class CompraServiceImpl implements CompraService {
 
             compra.setFechaPago(compra.getFechaPago().plusMonths(1));
             compra.setNumeroCuotas(compra.getNumeroCuotas()-1);
-            compra.setMontoFinal(compra.getMontoFinal() - compra.getMontoCuotaFinal());
+            montoFinal = montoFinal.subtract(montoCuotaFinal);
 
         }else {
             // Si la compra no es en cuotas, decrementa el monto final de la compra
-            compra.setMontoFinal(compra.getMontoFinal() - cantidadPagada);
+            montoFinal = montoFinal.subtract(cantidadPagadaBD);
         }
-        compra.setPaid(compra.getMontoFinal() == 0);
+
+
+        compra.setMontoFinal(montoFinal.setScale(2, RoundingMode.HALF_UP).doubleValue());
+        compra.setPaid(montoFinal.compareTo(BigDecimal.ZERO) == 0);
 
 
         // Guarda la compra actualizada en la base de datos y devuélvela
@@ -104,7 +112,7 @@ public class CompraServiceImpl implements CompraService {
         double montoProducto = compra.getProducto().getCosto();
         Persona persona = compra.getPersona();
         Credito credito = persona.getCredito();
-        double montoFinal;
+        BigDecimal montoFinal;
 
         LocalDate fechaCompra = compra.getFechaCompra();
         LocalDate fechaPagoInicial = fechaCompra.plusMonths(1).withDayOfMonth(credito.getDiaPago());
@@ -112,10 +120,10 @@ public class CompraServiceImpl implements CompraService {
 
         if (compra.isPagoEnCuotas()) {
             // Si la compra se realiza en cuotas, realizar los cálculos correspondientes
-            double montoCuotaFinal = calcularPagoMensualEnCuotas(montoProducto, credito.getPorcentajeTasa(), compra.getNumeroCuotas());
-            BigDecimal montoCuotaFinalBD = new BigDecimal(montoCuotaFinal).setScale(2, RoundingMode.HALF_UP);
-            compra.setMontoCuotaFinal(montoCuotaFinalBD.doubleValue());
-            montoFinal = montoCuotaFinal * compra.getNumeroCuotas();
+            BigDecimal montoCuotaFinal = BigDecimal.valueOf(calcularPagoMensualEnCuotas(montoProducto, credito.getPorcentajeTasa(), compra.getNumeroCuotas()));
+            montoCuotaFinal = montoCuotaFinal.setScale(2, RoundingMode.HALF_UP);
+            compra.setMontoCuotaFinal(montoCuotaFinal.doubleValue());
+            montoFinal = montoCuotaFinal.multiply(BigDecimal.valueOf(compra.getNumeroCuotas()));
 
 
 
@@ -123,28 +131,36 @@ public class CompraServiceImpl implements CompraService {
             int frecuenciaPagoDias = Frecuencia.fromString(credito.getFrecuenciaPago()).getDias();
 
             int diaPago = credito.getDiaPago();
+            double montoProductoFinal;
             if ("nominal".equalsIgnoreCase(credito.getTipoTasa())) {
                 // Calcular monto final con tasa nominal
                 int capitalizacionDias = Frecuencia.fromString(credito.getCapitalizacion()).getDias();
                 double m = (double) frecuenciaPagoDias / capitalizacionDias;
                 double n = (double) diaPago / capitalizacionDias;
-                montoFinal = montoProducto * Math.pow((1 + credito.getPorcentajeTasa() / m), n);
+                montoProductoFinal = montoProducto * Math.pow((1 + credito.getPorcentajeTasa() / m), n);
             } else if ("efectiva".equalsIgnoreCase(credito.getTipoTasa())) {
                 // Calcular monto final con tasa efectiva
                 double t = credito.getPorcentajeTasa();
                 double n = (double) diaPago / frecuenciaPagoDias;
-                montoFinal = montoProducto * Math.pow((1 + t), n);
+                montoProductoFinal = montoProducto * Math.pow((1 + t), n);
             } else {
                 throw new IllegalArgumentException("Tipo de tasa desconocido: " + credito.getTipoTasa());
             }
+            montoFinal = BigDecimal.valueOf(montoProductoFinal);
         }
 
-        BigDecimal montoFinalBD = new BigDecimal(montoFinal).setScale(2, RoundingMode.HALF_UP);
-        return montoFinalBD.doubleValue();
+        return montoFinal.setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
     private double calcularPagoMensualEnCuotas(double montoProducto, double tasaEfectiva, int numeroCuotas) {
-        return montoProducto * ((tasaEfectiva * Math.pow(1 + tasaEfectiva, numeroCuotas)) / (Math.pow(1 + tasaEfectiva, numeroCuotas) - 1));
+        BigDecimal montoProductoBD = BigDecimal.valueOf(montoProducto);
+        BigDecimal tasaEfectivaBD = BigDecimal.valueOf(tasaEfectiva);
+        BigDecimal uno = BigDecimal.ONE;
+        BigDecimal pow = uno.add(tasaEfectivaBD).pow(numeroCuotas);
+        BigDecimal numerador = tasaEfectivaBD.multiply(pow);
+        BigDecimal denominador = pow.subtract(uno);
+        BigDecimal cuota = montoProductoBD.multiply(numerador).divide(denominador, 2, RoundingMode.HALF_UP);
+        return cuota.doubleValue();
     }
 
 
